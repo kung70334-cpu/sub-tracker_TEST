@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <!-- 문자 인코딩과 화면 크기를 지정해 한국어와 모바일 레이아웃을 올바르게 표시한다. -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f2">
+  <title>구독 트래커</title>
+  <!-- CSS는 HTML 요소를 꾸미는 파일이며, 상대 경로는 index.html 위치를 기준으로 한다. -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 페이지 상단의 서비스 이름과 짧은 설명을 담는 영역이다. -->
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="구독 트래커 홈">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>구독 트래커</span>
+      </a>
+      <span class="topbar-note">나의 반복 지출</span>
+    </header>
+
+    <main>
+      <!-- 페이지 제목과 폼으로 이동시키는 주요 동작 버튼이다. -->
+      <section class="page-heading" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">SUBSCRIPTION OVERVIEW</p>
+          <h1 id="page-title">구독 관리</h1>
+        </div>
+        <button class="button button-primary" id="add-subscription-button" type="button">
+          <span aria-hidden="true">+</span> 구독 추가
+        </button>
+      </section>
+
+      <!-- main.js가 아래 id를 찾아 월 합계, 연 합계, 7일 이내 결제 수를 갱신한다. -->
+      <section class="summary-grid" aria-label="구독 요약">
+        <article class="summary-item">
+          <span class="summary-label">월 합계</span>
+          <strong class="summary-value" id="monthly-total">0원</strong>
+          <span class="summary-footnote">매월 기준 환산</span>
+        </article>
+        <article class="summary-item">
+          <span class="summary-label">연간 합계</span>
+          <strong class="summary-value" id="yearly-total">0원</strong>
+          <span class="summary-footnote">월 기준 금액 × 12</span>
+        </article>
+        <article class="summary-item summary-upcoming">
+          <span class="summary-label">이번 주 결제 예정</span>
+          <strong class="summary-value" id="upcoming-count">0건</strong>
+          <span class="summary-footnote" id="upcoming-caption">예정된 결제가 없습니다</span>
+        </article>
+      </section>
+
+      <!-- 본문은 구독 목록과 오른쪽 보조 영역(카테고리/입력 폼)으로 나뉜다. -->
+      <div class="content-grid">
+        <!-- 구독 카드 목록. 카드의 수정/삭제 버튼 클릭은 main.js에서 위임 처리한다. -->
+        <section class="subscriptions-section" aria-labelledby="subscriptions-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">YOUR SERVICES</p>
+              <h2 id="subscriptions-title">내 구독 <span id="subscription-count">0</span></h2>
+            </div>
+            <label class="sort-control" for="subscription-sort">
+              <span class="visually-hidden">정렬 기준</span>
+              <select id="subscription-sort">
+                <option value="date">결제일순</option>
+                <option value="amount">월 금액순</option>
+                <option value="name">이름순</option>
+              </select>
+            </label>
+          </div>
+          <div class="subscription-list" id="subscription-list" aria-live="polite"></div>
+        </section>
+
+        <!-- 화면 폭이 좁아지면 CSS가 이 영역들을 목록 아래에 세로로 배치한다. -->
+        <aside class="side-column">
+          <!-- ui.js가 카테고리 계산값을 가로 막대와 금액으로 표현한다. -->
+          <section class="category-section" aria-labelledby="category-title">
+            <div class="section-heading compact-heading">
+              <div>
+                <p class="eyebrow">SPENDING MIX</p>
+                <h2 id="category-title">카테고리별 비중</h2>
+              </div>
+            </div>
+            <div class="category-list" id="category-list"></div>
+          </section>
+
+          <!-- name 속성은 FormData가 읽는 키, id는 JavaScript가 입력 요소를 찾는 키다. -->
+          <section class="form-section" id="subscription-form-section" aria-labelledby="form-title">
+            <div class="section-heading compact-heading">
+              <div>
+                <p class="eyebrow">SUBSCRIPTION DETAILS</p>
+                <h2 id="form-title">구독 추가</h2>
+              </div>
+            </div>
+            <form id="subscription-form">
+              <!-- 수정 모드일 때만 기존 구독 id를 담으며, 새 구독이면 비어 있다. -->
+              <input id="subscription-id" name="id" type="hidden">
+              <label class="field field-wide" for="subscription-name">
+                <span>서비스 이름</span>
+                <input id="subscription-name" name="name" type="text" maxlength="50" placeholder="예: 음악 스트리밍" required>
+              </label>
+              <label class="field" for="subscription-amount">
+                <span>결제 금액</span>
+                <div class="input-suffix">
+                  <input id="subscription-amount" name="amount" type="number" min="1" step="1" inputmode="numeric" placeholder="0" required>
+                  <span>원</span>
+                </div>
+              </label>
+              <label class="field" for="subscription-cycle">
+                <span>결제 주기</span>
+                <select id="subscription-cycle" name="cycle">
+                  <option value="monthly">매월</option>
+                  <option value="yearly">매년</option>
+                </select>
+              </label>
+              <label class="field" for="subscription-date">
+                <span>다음 결제일</span>
+                <input id="subscription-date" name="nextPaymentDate" type="date" required>
+              </label>
+              <!-- datalist는 선택 목록과 직접 입력을 함께 허용한다. -->
+              <label class="field" for="subscription-category">
+                <span>카테고리</span>
+                <input id="subscription-category" name="category" type="text" list="category-options" maxlength="30" placeholder="예: 영상" required>
+                <datalist id="category-options">
+                  <option value="영상"></option>
+                  <option value="음악"></option>
+                  <option value="운동"></option>
+                  <option value="생산성"></option>
+                  <option value="생활"></option>
+                  <option value="기타"></option>
+                </datalist>
+              </label>
+              <label class="field field-wide" for="subscription-payment-method">
+                <span>결제 수단 <span class="optional-label">선택</span></span>
+                <input id="subscription-payment-method" name="paymentMethod" type="text" maxlength="30" placeholder="예: 신한카드">
+              </label>
+              <div class="form-actions field-wide">
+                <button class="button button-quiet hidden" id="cancel-edit-button" type="button">수정 취소</button>
+                <button class="button button-primary" id="submit-subscription-button" type="submit">구독 저장</button>
+              </div>
+            </form>
+            <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <!-- 저장 위치가 서버가 아니라 현재 브라우저임을 사용자에게 알린다. -->
+    <footer class="footer-note">이 브라우저에 구독 정보를 저장합니다.</footer>
+  </div>
+  <!-- ui.js를 먼저 불러 렌더 함수 객체를 만들고, main.js가 이를 연결해 앱을 시작한다. -->
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
